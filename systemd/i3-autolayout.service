@@ -1,0 +1,9 @@
+[Unit]
+Description=Automatic layout for i3 window manager
+StartLimitIntervalSec=30
+StartLimitBurst=5
+
+[Service]
+ExecStart=i3-autolayout
+Restart=on-failure
+RestartSec=3s
