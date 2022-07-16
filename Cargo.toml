@@ -8,6 +8,7 @@ description = "Service to automatically managing i3 window manager layout."
 keywords = ["i3", "sway", "i3wm", "window manager"]
 repository = "https://github.com/BiagioFesta/i3-autolayout"
 readme = "README.md"
+exclude = ["img/*"]
 
 [dependencies]
 anyhow = { version = "1" }
