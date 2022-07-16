@@ -37,11 +37,17 @@ impl SplitLayout {
     }
 }
 
+/// AutoLayout service.
+///
+/// It represent the service which implements the auto-layout functionality.
 pub struct AutoLayout {
     i3_stream: I3Stream,
 }
 
 impl AutoLayout {
+    /// Initialize and create the service.
+    ///
+    /// Create the service starting a connection with the i3 window manager.
     pub fn new() -> Result<Self> {
         println!("Connecting and subscribing i3 events");
 
@@ -54,6 +60,10 @@ impl AutoLayout {
             .context("Cannot connect to i3")
     }
 
+    /// Run the service.
+    ///
+    /// Start the service itself within this blocking function.
+    /// It only returns when the service stops for some error.
     pub fn serve(mut self) -> Result<()> {
         loop {
             let event = self
