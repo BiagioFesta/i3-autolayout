@@ -1,7 +1,7 @@
 [package]
 name = "i3-autolayout"
 version = "0.1.0"
-license = "GPL-3.0 license"
+license = "GPL-3.0-or-later"
 authors = ["Biagio Festa"]
 edition = "2021"
 description = "Service to automatically managing i3 window manager layout."
