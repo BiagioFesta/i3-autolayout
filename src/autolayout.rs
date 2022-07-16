@@ -31,6 +31,12 @@ enum SplitLayout {
     Vertical,
 }
 
+impl SplitLayout {
+    fn is_vertical(&self) -> bool {
+        matches!(self, SplitLayout::Vertical)
+    }
+}
+
 pub struct AutoLayout {
     i3_stream: I3Stream,
 }
@@ -67,9 +73,7 @@ impl AutoLayout {
         match node.layout {
             NodeLayout::SplitH | NodeLayout::SplitV => {
                 let split_layout = match self.find_parent_workspace(&node) {
-                    Some(workspace)
-                        if Self::layout_of_node(&workspace) == SplitLayout::Vertical =>
-                    {
+                    Some(workspace) if Self::layout_of_node(&workspace).is_vertical() => {
                         SplitLayout::Vertical
                     }
                     _ => Self::layout_of_node(&node),
