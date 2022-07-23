@@ -17,8 +17,14 @@
 
 use anyhow::Result;
 use autolayout::AutoLayout;
+use clap::Parser;
+
+#[derive(Parser)]
+#[clap(author, version, about)]
+struct CliArgs {}
 
 fn main() -> Result<()> {
+    CliArgs::parse();
     AutoLayout::new()?.serve()
 }
 

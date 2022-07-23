@@ -12,4 +12,5 @@ exclude = ["img/*"]
 
 [dependencies]
 anyhow = { version = "1" }
+clap = { version = "3", features = ["derive"] }
 i3_ipc = { version = "0.15" }
