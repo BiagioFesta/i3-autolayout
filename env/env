@@ -1,0 +1,15 @@
+#!/bin/sh
+
+AUTOLAYOUT_BIN_DIR=%%%
+
+case ":${PATH}:" in
+    *:"$AUTOLAYOUT_BIN_DIR":*)
+        ;;
+    *)
+        export PATH="$AUTOLAYOUT_BIN_DIR:$PATH"
+        ;;
+esac
+
+# Local Variables:
+# mode: sh
+# End:
