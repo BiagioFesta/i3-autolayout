@@ -4,6 +4,6 @@ StartLimitIntervalSec=30
 StartLimitBurst=5
 
 [Service]
-ExecStart=i3-autolayout
+ExecStart=i3-autolayout autolayout
 Restart=on-failure
 RestartSec=3s
