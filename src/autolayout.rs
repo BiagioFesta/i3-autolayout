@@ -15,6 +15,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use crate::utilities::execute_i3_command;
 use anyhow::Context;
 use anyhow::Result;
 use i3_ipc::event::Event;
@@ -114,9 +115,7 @@ impl AutoLayout {
             SplitMode::Vertical => "split vertical",
         };
 
-        self.i3_stream
-            .run_command(split_cmd)
-            .context("Cannot execute split command")?;
+        execute_i3_command(&mut self.i3_stream, split_cmd).context("Cannot execute split command")?;
 
         Ok(())
     }

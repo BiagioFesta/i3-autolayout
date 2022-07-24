@@ -15,37 +15,31 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use anyhow::anyhow;
+use anyhow::Context;
 use anyhow::Result;
-use autolayout::AutoLayout;
-use clap::Parser;
-use clap::Subcommand;
-use tabmode::TabMode;
+use i3_ipc::I3Stream;
 
-#[derive(Parser)]
-#[clap(author, version, about)]
-struct CliArgs {
-    #[clap(subcommand)]
-    command: Command,
+/// Execute i3 command.
+pub fn execute_i3_command<S>(i3_stream: &mut I3Stream, command: S) -> Result<()>
+where
+    S: AsRef<str>,
+{
+    i3_stream
+        .run_command(command)
+        .context("Cannot execute command")?
+        .into_iter()
+        .map(|result| {
+            if result.success {
+                Ok(())
+            } else {
+                Err(anyhow!(
+                    "Command failed with: {}",
+                    result.error.unwrap_or_else(|| "N/A".to_string())
+                ))
+            }
+        })
+        .collect::<Result<Vec<_>>>()?;
+
+    Ok(())
 }
-
-#[derive(Subcommand)]
-enum Command {
-    #[clap(name = "autolayout")]
-    Autolayout,
-
-    #[clap(name = "tabmode")]
-    TabMode,
-}
-
-fn main() -> Result<()> {
-    let cli_args = CliArgs::parse();
-
-    match cli_args.command {
-        Command::Autolayout => AutoLayout::new()?.serve(),
-        Command::TabMode => TabMode::new()?.execute(),
-    }
-}
-
-mod autolayout;
-mod tabmode;
-mod utilities;

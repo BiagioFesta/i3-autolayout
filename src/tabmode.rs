@@ -15,6 +15,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use crate::utilities::execute_i3_command;
 use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
@@ -53,8 +54,11 @@ impl TabMode {
 
         self.normalize_workspace(workspace)?;
 
-        self.run_cmd(format!("[con_id={}] layout tabbed", workspace_id))
-            .context("Cannot set tabbed layout on workspace")?;
+        execute_i3_command(
+            &mut self.i3_stream,
+            format!("[con_id={}] layout tabbed", workspace_id),
+        )
+        .context("Cannot set tabbed layout on workspace")?;
 
         Ok(())
     }
@@ -87,40 +91,19 @@ impl TabMode {
         Err(anyhow!("Cannot find workspace associated with id"))
     }
 
-    fn run_cmd<S>(&mut self, payload: S) -> Result<()>
-    where
-        S: AsRef<str>,
-    {
-        self.i3_stream
-            .run_command(payload)
-            .context("Cannot execute command")?
-            .into_iter()
-            .map(|result| {
-                if result.success {
-                    Ok(())
-                } else {
-                    Err(anyhow!(
-                        "Command failed with: {}",
-                        result.error.unwrap_or_else(|| "N/A".to_string())
-                    ))
-                }
-            })
-            .collect::<Result<Vec<_>>>()?;
-
-        Ok(())
-    }
-
     fn set_default_layout(&mut self, node: &Node) -> Result<()> {
-        self.run_cmd(format!("[con_id={}] layout default", node.id))
-            .context("Cannot set default layout for node")
+        execute_i3_command(
+            &mut self.i3_stream,
+            format!("[con_id={}] layout default", node.id),
+        )
+        .context("Cannot set default layout for node")
     }
 
     fn normalize_workspace(&mut self, workspace: Node) -> Result<()> {
-        self.run_cmd(format!(
-            "[con_id={}] mark \"{}\"",
-            workspace.id,
-            Self::MARK_ID
-        ))
+        execute_i3_command(
+            &mut self.i3_stream,
+            format!("[con_id={}] mark \"{}\"", workspace.id, Self::MARK_ID),
+        )
         .context("Cannot set temporary mark")?;
 
         let normalize_result = || -> Result<()> {
@@ -137,11 +120,14 @@ impl TabMode {
             while let Some(current) = dfs.pop() {
                 let _ = self.set_default_layout(&current);
 
-                self.run_cmd(format!(
-                    "[con_id={}] move window to mark \"{}\"",
-                    current.id,
-                    Self::MARK_ID
-                ))
+                execute_i3_command(
+                    &mut self.i3_stream,
+                    format!(
+                        "[con_id={}] move window to mark \"{}\"",
+                        current.id,
+                        Self::MARK_ID
+                    ),
+                )
                 .context("Cannot move window")?;
 
                 dfs.extend(current.nodes);
@@ -150,7 +136,7 @@ impl TabMode {
             Ok(())
         }();
 
-        self.run_cmd(format!("unmark \"{}\"", Self::MARK_ID))
+        execute_i3_command(&mut self.i3_stream, format!("unmark \"{}\"", Self::MARK_ID))
             .context("Cannot remove temporary mark")?;
 
         normalize_result
