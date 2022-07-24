@@ -18,14 +18,33 @@
 use anyhow::Result;
 use autolayout::AutoLayout;
 use clap::Parser;
+use clap::Subcommand;
+use tabmode::TabMode;
 
 #[derive(Parser)]
 #[clap(author, version, about)]
-struct CliArgs {}
+struct CliArgs {
+    #[clap(subcommand)]
+    command: Command,
+}
+
+#[derive(Subcommand)]
+enum Command {
+    #[clap(name = "autolayout")]
+    Autolayout,
+
+    #[clap(name = "tabmode")]
+    TabMode,
+}
 
 fn main() -> Result<()> {
-    CliArgs::parse();
-    AutoLayout::new()?.serve()
+    let cli_args = CliArgs::parse();
+
+    match cli_args.command {
+        Command::Autolayout => AutoLayout::new()?.serve(),
+        Command::TabMode => TabMode::new()?.execute(),
+    }
 }
 
 mod autolayout;
+mod tabmode;
