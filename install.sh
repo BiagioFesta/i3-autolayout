@@ -40,7 +40,7 @@ THEHOME=$(eval echo "~${THEUSER}")
 read -r -p "Source environment for user '${THEUSER}'? [y/N]: " ans
 case "${ans}" in
     [yY])
-        line=". ${prefix}/env/env"
+        line=". \"${prefix}/env/env\""
         envs=".profile .bashrc"
 
         for vv in ${envs}; do
