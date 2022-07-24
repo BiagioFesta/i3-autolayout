@@ -22,6 +22,10 @@ Of course, you can still perform a manual split: indeed, `i3-autolayout` aims to
 
 See the [installation guide](https://github.com/BiagioFesta/i3-autolayout/wiki#install).
 
+## Usage
+
+See the [usage guide](https://github.com/BiagioFesta/i3-autolayout/wiki#usage).
+
 
 ## Alternatives
 
