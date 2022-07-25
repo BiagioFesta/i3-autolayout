@@ -24,7 +24,7 @@ See the [installation guide](https://github.com/BiagioFesta/i3-autolayout/wiki#i
 
 ## Usage
 
-See the [usage guide](https://github.com/BiagioFesta/i3-autolayout/wiki#usage).
+See the [usage guide](https://github.com/BiagioFesta/i3-autolayout/wiki/Usage).
 
 
 ## Alternatives
