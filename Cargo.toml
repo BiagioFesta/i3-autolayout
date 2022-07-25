@@ -11,6 +11,6 @@ readme = "README.md"
 exclude = ["img/*"]
 
 [dependencies]
-anyhow = { version = "1" }
-clap = { version = "3", features = ["derive"] }
-i3_ipc = { version = "0.15" }
+anyhow = "1.0.58"
+clap = { version = "3.2.15", features = ["derive"] }
+i3_ipc = "0.15.0"
