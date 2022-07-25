@@ -20,7 +20,7 @@ use anyhow::Result;
 use i3_ipc::event::Subscribe;
 use i3_ipc::I3Stream;
 
-pub type Event = i3_ipc::event::Event;
+pub type I3Event = i3_ipc::event::Event;
 
 #[derive(Copy, Clone)]
 pub enum EventSubscribe {
@@ -46,7 +46,7 @@ impl EventListener {
         Ok(Self { i3_stream })
     }
 
-    pub fn receive_event(&mut self) -> Result<Event> {
+    pub fn receive_event(&mut self) -> Result<I3Event> {
         self.i3_stream
             .receive_event()
             .context("Cannot receive event from i3 listener")
