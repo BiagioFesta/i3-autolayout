@@ -15,14 +15,13 @@
    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use std::fmt::Display;
-
 use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
 use i3_ipc::Connect;
 use i3_ipc::I3Stream;
 use i3_ipc::I3;
+use std::fmt::Display;
 
 pub type I3Version = i3_ipc::reply::Version;
 pub type I3Workspace = i3_ipc::reply::Workspace;
