@@ -23,16 +23,25 @@ use anyhow::Result;
 use i3_ipc::reply::Floating;
 use i3_ipc::reply::NodeType;
 
+/// The node layout.
 pub enum Layout {
+    /// Default layout.
     Default,
+
+    /// Tabbed layout.
     Tabbed,
 }
 
+/// A split operation request.
 pub enum Split {
+    /// Split horizontal.
     Horizontal,
+
+    /// Split vertical.
     Vertical,
 }
 
+/// Find a node by id.
 pub fn find_node_by_id(node_id: usize, root_node: &RootNode) -> Option<&I3Node> {
     let mut dfs = vec![root_node.node()];
 
@@ -47,6 +56,7 @@ pub fn find_node_by_id(node_id: usize, root_node: &RootNode) -> Option<&I3Node> 
     None
 }
 
+/// Find a node's parent.
 pub fn find_node_parent(node_id: usize, root_node: &RootNode) -> Option<&I3Node> {
     // It's not a real problem, but a waste of CPU cycles
     debug_assert!(node_id != root_node.node().id);
@@ -69,6 +79,10 @@ pub fn find_node_parent(node_id: usize, root_node: &RootNode) -> Option<&I3Node>
     None
 }
 
+/// Find the workspace which contains the node.
+///
+/// Note: a window might not be always associated with a workspace.
+/// For instance, floating windows or windows on scratchpad.
 pub fn find_workspace_of_node(node_id: usize, root_node: &RootNode) -> Option<&I3Node> {
     let mut workspace = None;
     let mut dfs = vec![root_node.node()];
@@ -88,6 +102,7 @@ pub fn find_workspace_of_node(node_id: usize, root_node: &RootNode) -> Option<&I
     workspace
 }
 
+/// Set the layout for a particular node.
 pub fn set_node_layout(
     node_id: usize,
     layout: Layout,
@@ -103,6 +118,7 @@ pub fn set_node_layout(
         .with_context(|| format!("Cannot set layout for a node ('{}')", layout_cmd))
 }
 
+/// Set a split operation for a particular node.
 pub fn set_node_split(
     node_id: usize,
     split: Split,
@@ -118,6 +134,7 @@ pub fn set_node_split(
         .with_context(|| format!("Cannot split a node ('{}')", split_cmd))
 }
 
+/// Check whether the node is a floating container or not.
 pub fn is_floating_container(node: &I3Node) -> bool {
     match node.floating {
         Some(Floating::AutoOn) | Some(Floating::UserOn) => true,

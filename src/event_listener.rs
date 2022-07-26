@@ -20,18 +20,27 @@ use anyhow::Result;
 use i3_ipc::event::Subscribe;
 use i3_ipc::I3Stream;
 
+/// An I3 Event.
 pub type I3Event = i3_ipc::event::Event;
 
+/// An event subscriber.
+///
+/// When create a listener it allows indicating which kind of events
+/// you want to catch.
 #[derive(Copy, Clone)]
 pub enum EventSubscribe {
+    /// Event of type Window.
     Window,
 }
 
+/// A connection with I3 IPC for event capturing.
 pub struct EventListener {
+    /// The connection with I3 for IPC.
     i3_stream: I3Stream,
 }
 
 impl EventListener {
+    /// Connect to I3 and subscribe for particular event to catch.
     pub fn new(event_subscribe: &[EventSubscribe]) -> Result<Self> {
         println!("Creating event listener...");
         let i3_stream = I3Stream::conn_sub(
@@ -46,6 +55,10 @@ impl EventListener {
         Ok(Self { i3_stream })
     }
 
+    /// Receive the next event.
+    ///
+    /// This is a blocking function. It waits until the next event is available
+    /// or an error occour (e.g., I3 socket disconnection).
     pub fn receive_event(&mut self) -> Result<I3Event> {
         self.i3_stream
             .receive_event()

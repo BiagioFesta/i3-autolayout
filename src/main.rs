@@ -15,6 +15,11 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#![warn(missing_docs)]
+
+//! i3-autolayout is a simple service which helps keep a reasonable
+//! windows layout for your i3 manager.
+
 use crate::autolayout::AutoLayout;
 use crate::command_executor::CommandExecutor;
 use crate::event_listener::EventListener;
@@ -24,21 +29,27 @@ use anyhow::Context;
 use anyhow::Result;
 use clap::Parser;
 
+/// CLI arguments.
 #[derive(clap::Parser)]
 #[clap(about, author, version)]
 struct CliArgs {
+    /// The subcommand to apply.
     #[clap(subcommand)]
     command: Command,
 }
 
+/// Subcommand of CLI.
 #[derive(clap::Subcommand)]
 enum Command {
+    /// Autolayout service.
     #[clap(name = "autolayout")]
     Autolayout,
 
+    /// TabMode executor.
     #[clap(name = "tabmode")]
     TabMode,
 
+    /// Display i3 information.
     #[clap(name = "i3version")]
     I3Version,
 }
@@ -53,6 +64,7 @@ fn main() -> Result<()> {
     }
 }
 
+/// Execute autolayout service.
 fn command_autolayout() -> Result<()> {
     let event_listener = EventListener::new(&[EventSubscribe::Window])?;
     let command_executor = CommandExecutor::new()?;
@@ -61,6 +73,7 @@ fn command_autolayout() -> Result<()> {
     autolayout.serve()
 }
 
+/// Execute tabmode.
 fn command_tabmode() -> Result<()> {
     let command_executor = CommandExecutor::new()?;
     let tabmode = TabMode::new(command_executor);
@@ -68,6 +81,7 @@ fn command_tabmode() -> Result<()> {
     tabmode.execute()
 }
 
+/// Display i3 information.
 fn command_i3_version() -> Result<()> {
     let mut command_executor = CommandExecutor::new()?;
     let i3_version = command_executor.query_i3_version()?;

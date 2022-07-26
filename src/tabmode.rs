@@ -27,18 +27,20 @@ use anyhow::Result;
 
 /// TabMode executor.
 ///
-/// It represent a one-shot executor which normalizes the current active workspace
+/// It represents a one-shot executor which normalizes the current active workspace
 /// and display all nodes in tabbed mode.
+///
+/// One tab per window.
 pub struct TabMode {
+    /// Command executor.
     command_executor: CommandExecutor,
 }
 
 impl TabMode {
+    /// A temporary mark for moving nodes.
     const MARK_ID: &'static str = "__i3-autolayout__tmp_ID";
 
-    /// Initialize and the create the executor.
-    ///
-    /// It connects to i3 IPC.
+    /// A new tabmode executor.
     pub fn new(command_executor: CommandExecutor) -> Self {
         Self { command_executor }
     }
@@ -57,6 +59,7 @@ impl TabMode {
             .context("Cannot layout for focused workspace")
     }
 
+    /// Return the current focused workspace (as node).
     fn get_focus_workspace<'a>(&mut self, root_node: &'a RootNode) -> Result<&'a I3Node> {
         let focused_workspace_id = self
             .command_executor
@@ -70,6 +73,10 @@ impl TabMode {
             .ok_or_else(|| anyhow!("Cannot find focused workspace associated with the id"))
     }
 
+    /// Normalize a workspace.
+    ///
+    /// Recursively, all nodes in that workspace will be placed as direct children of
+    /// the workspace node itself.
     fn normalize_workspace(&mut self, workspace: &I3Node) -> Result<()> {
         self.command_executor
             .run_on_node_id(workspace.id, format!("mark \"{}\"", Self::MARK_ID))
@@ -92,6 +99,7 @@ impl TabMode {
         move_result
     }
 
+    /// It recursively moves all nodes in a subtree to a specific mark.
     fn move_recursively_on_mark(&mut self, mut subtree: Vec<&I3Node>, mark_id: &str) -> Result<()> {
         while let Some(current) = subtree.pop() {
             let _ = set_node_layout(current.id, Layout::Default, &mut self.command_executor);
