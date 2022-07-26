@@ -41,6 +41,24 @@ pub enum Split {
     Vertical,
 }
 
+/// The size ratio for a rectangle container.
+pub enum RectRatio {
+    /// Width greater or equal than height.
+    Horizontal,
+
+    /// Height greater than width.
+    Vertical,
+}
+
+impl RectRatio {
+    /// If ratio is vertical.
+    ///
+    /// Same as: `matches!(sefl, RectRatio::Vertical)`.
+    pub fn is_vertical(&self) -> bool {
+        matches!(self, RectRatio::Vertical)
+    }
+}
+
 /// Find a node by id.
 pub fn find_node_by_id(node_id: usize, root_node: &RootNode) -> Option<&I3Node> {
     let mut dfs = vec![root_node.node()];
@@ -139,5 +157,14 @@ pub fn is_floating_container(node: &I3Node) -> bool {
     match node.floating {
         Some(Floating::AutoOn) | Some(Floating::UserOn) => true,
         None | Some(Floating::AutoOff) | Some(Floating::UserOff) => false,
+    }
+}
+
+/// Check the ratio of a node.
+pub fn ratio_of_node(node: &I3Node) -> RectRatio {
+    if node.window_rect.height > node.window_rect.width {
+        RectRatio::Vertical
+    } else {
+        RectRatio::Horizontal
     }
 }

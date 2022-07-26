@@ -21,32 +21,16 @@ use crate::event_listener::EventListener;
 use crate::utilities::find_node_parent;
 use crate::utilities::find_workspace_of_node;
 use crate::utilities::is_floating_container;
+use crate::utilities::ratio_of_node;
 use crate::utilities::set_node_split;
 use crate::utilities::Split;
+use crate::utilities::RectRatio;
 use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
 use i3_ipc::event::Event;
 use i3_ipc::event::WindowChange;
 use i3_ipc::reply::NodeLayout;
-
-/// The size ratio for a rectangle container.
-enum RectRatio {
-    /// Width greater or equal than height.
-    Horizontal,
-
-    /// Height greater than width.
-    Vertical,
-}
-
-impl RectRatio {
-    /// If ratio is vertical.
-    ///
-    /// Same as: `matches!(sefl, RectRatio::Vertical)`.
-    fn is_vertical(&self) -> bool {
-        matches!(self, RectRatio::Vertical)
-    }
-}
 
 /// AutoLayout service.
 ///
@@ -115,10 +99,8 @@ impl AutoLayout {
         match parent_node.layout {
             NodeLayout::SplitH | NodeLayout::SplitV => {
                 let split = match find_workspace_of_node(node.id, &root_node) {
-                    Some(workspace) if Self::ratio_of_node(workspace).is_vertical() => {
-                        Split::Vertical
-                    }
-                    _ => match Self::ratio_of_node(node) {
+                    Some(workspace) if ratio_of_node(workspace).is_vertical() => Split::Vertical,
+                    _ => match ratio_of_node(node) {
                         RectRatio::Horizontal => Split::Horizontal,
                         RectRatio::Vertical => Split::Vertical,
                     },
@@ -127,15 +109,6 @@ impl AutoLayout {
                 set_node_split(node.id, split, &mut self.command_executor)
             }
             _ => Ok(()),
-        }
-    }
-
-    /// Check the ratio of a node.
-    fn ratio_of_node(node: &I3Node) -> RectRatio {
-        if node.window_rect.height > node.window_rect.width {
-            RectRatio::Vertical
-        } else {
-            RectRatio::Horizontal
         }
     }
 }
