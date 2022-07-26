@@ -20,6 +20,7 @@ use crate::command_executor::I3Node;
 use crate::command_executor::RootNode;
 use anyhow::Context;
 use anyhow::Result;
+use i3_ipc::reply::Floating;
 use i3_ipc::reply::NodeType;
 
 pub enum Layout {
@@ -115,4 +116,11 @@ pub fn set_node_split(
     command_executor
         .run_on_node_id(node_id, split_cmd)
         .with_context(|| format!("Cannot split a node ('{}')", split_cmd))
+}
+
+pub fn is_floating_container(node: &I3Node) -> bool {
+    match node.floating {
+        Some(Floating::AutoOn) | Some(Floating::UserOn) => true,
+        None | Some(Floating::AutoOff) | Some(Floating::UserOff) => false,
+    }
 }

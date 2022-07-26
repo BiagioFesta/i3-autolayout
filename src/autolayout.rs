@@ -20,6 +20,7 @@ use crate::command_executor::I3Node;
 use crate::event_listener::EventListener;
 use crate::utilities::find_node_parent;
 use crate::utilities::find_workspace_of_node;
+use crate::utilities::is_floating_container;
 use crate::utilities::set_node_split;
 use crate::utilities::Split;
 use anyhow::anyhow;
@@ -94,6 +95,10 @@ impl AutoLayout {
     }
 
     fn on_window_focus(&mut self, node: &I3Node) -> Result<()> {
+        if is_floating_container(node) {
+            return Ok(());
+        }
+
         let root_node = self.command_executor.query_root_node()?;
         let parent_node = find_node_parent(node.id, &root_node)
             .ok_or_else(|| anyhow!("Cannot find parent of focused window"))?;
