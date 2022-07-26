@@ -23,6 +23,7 @@ use crate::utilities::find_workspace_of_node;
 use crate::utilities::set_node_split;
 use crate::utilities::Split;
 use anyhow::anyhow;
+use anyhow::Context;
 use anyhow::Result;
 use i3_ipc::event::Event;
 use i3_ipc::event::WindowChange;
@@ -73,13 +74,26 @@ impl AutoLayout {
 
             if let Event::Window(window_data) = event {
                 if let WindowChange::Focus = window_data.change {
-                    self.on_window_focus(window_data.container)?;
+                    let node = window_data.container;
+                    let result = self.on_window_focus(&node).with_context(|| {
+                        format!(
+                            "AutoLayout failure for window [{}; '{:?}'; '{:?}'; {}]",
+                            node.id, node.name, node.floating, node.focused,
+                        )
+                    });
+
+                    if let Err(error) = result {
+                        println!(
+                            "[WARN]: Failure to set split mode for focused window: {:?}",
+                            error
+                        );
+                    }
                 }
             }
         }
     }
 
-    fn on_window_focus(&mut self, node: I3Node) -> Result<()> {
+    fn on_window_focus(&mut self, node: &I3Node) -> Result<()> {
         let root_node = self.command_executor.query_root_node()?;
         let parent_node = find_node_parent(node.id, &root_node)
             .ok_or_else(|| anyhow!("Cannot find parent of focused window"))?;
@@ -90,7 +104,7 @@ impl AutoLayout {
                     Some(workspace) if Self::ratio_of_node(workspace).is_vertical() => {
                         Split::Vertical
                     }
-                    _ => match Self::ratio_of_node(&node) {
+                    _ => match Self::ratio_of_node(node) {
                         RectRatio::Horizontal => Split::Horizontal,
                         RectRatio::Vertical => Split::Vertical,
                     },
