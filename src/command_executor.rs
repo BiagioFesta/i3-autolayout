@@ -92,7 +92,7 @@ impl CommandExecutor {
 pub struct RootNode(I3Node);
 
 impl RootNode {
-    pub fn i3_node(&self) -> &I3Node {
+    pub fn node(&self) -> &I3Node {
         &self.0
     }
 }

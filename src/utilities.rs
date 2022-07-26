@@ -34,7 +34,7 @@ pub enum Split {
 }
 
 pub fn find_node_by_id(node_id: usize, root_node: &RootNode) -> Option<&I3Node> {
-    let mut dfs = vec![root_node.i3_node()];
+    let mut dfs = vec![root_node.node()];
 
     while let Some(current) = dfs.pop() {
         if current.id == node_id {
@@ -49,13 +49,13 @@ pub fn find_node_by_id(node_id: usize, root_node: &RootNode) -> Option<&I3Node> 
 
 pub fn find_node_parent(node_id: usize, root_node: &RootNode) -> Option<&I3Node> {
     // It's not a real problem, but a waste of CPU cycles
-    debug_assert!(node_id != root_node.i3_node().id);
+    debug_assert!(node_id != root_node.node().id);
 
     let mut dfs: Vec<(&I3Node, &I3Node)> = root_node
-        .i3_node()
+        .node()
         .nodes
         .iter()
-        .map(|n| (n, root_node.i3_node()))
+        .map(|n| (n, root_node.node()))
         .collect();
 
     while let Some((current, parent)) = dfs.pop() {
@@ -71,7 +71,7 @@ pub fn find_node_parent(node_id: usize, root_node: &RootNode) -> Option<&I3Node>
 
 pub fn find_workspace_of_node(node_id: usize, root_node: &RootNode) -> Option<&I3Node> {
     let mut workspace = None;
-    let mut dfs = vec![root_node.i3_node()];
+    let mut dfs = vec![root_node.node()];
 
     while let Some(current) = dfs.pop() {
         if current.node_type == NodeType::Workspace {
