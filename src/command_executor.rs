@@ -68,6 +68,7 @@ impl CommandExecutor {
     {
         self.run(format!("[con_id={}] {}", node_id, command))
     }
+
     pub fn query_workspaces(&mut self) -> Result<Vec<I3Workspace>> {
         self.i3_stream
             .get_workspaces()
