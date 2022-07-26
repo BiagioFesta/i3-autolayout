@@ -24,6 +24,7 @@ use crate::utilities::Layout;
 use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
+use i3_ipc::reply::NodeLayout;
 
 /// TabMode executor.
 ///
@@ -55,7 +56,12 @@ impl TabMode {
 
         self.normalize_workspace(workspace)?;
 
-        set_node_layout(workspace.id, Layout::Tabbed, &mut self.command_executor)
+        let layout = match workspace.nodes.first().map(|n| n.layout) {
+            Some(NodeLayout::Tabbed) => Layout::Default,
+            _ => Layout::Tabbed,
+        };
+
+        set_node_layout(workspace.id, layout, &mut self.command_executor)
             .context("Cannot layout for focused workspace")
     }
 
