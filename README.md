@@ -1,6 +1,6 @@
 # i3-autolayout
 [![crates.io](https://img.shields.io/crates/v/i3-autolayout.svg)](https://crates.io/crates/i3-autolayout)
-
+[![Rust](https://github.com/BiagioFesta/i3-autolayout/actions/workflows/ci.yml/badge.svg)](https://github.com/BiagioFesta/i3-autolayout/actions/workflows/ci.yml)
 
 ## Introduction
 `i3-autolayout` is a simple service which helps keep a reasonable windows layout for your *i3* manager.
