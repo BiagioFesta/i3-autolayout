@@ -25,6 +25,7 @@ use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
 use i3_ipc::reply::NodeLayout;
+use i3_ipc::reply::NodeType;
 
 /// TabMode executor.
 ///
@@ -84,6 +85,8 @@ impl TabMode {
     /// Recursively, all nodes in that workspace will be placed as direct children of
     /// the workspace node itself.
     fn normalize_workspace(&mut self, workspace: &I3Node) -> Result<()> {
+        debug_assert!(matches!(workspace.node_type, NodeType::Workspace));
+
         self.command_executor
             .run_on_node_id(workspace.id, format!("mark \"{}\"", Self::MARK_ID))
             .context("Cannot set temporary mark on focused workspace")?;
