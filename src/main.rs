@@ -30,7 +30,7 @@ use anyhow::Context;
 use anyhow::Result;
 use clap::Parser;
 use print_tree::print_tree;
-use utilities::find_node_by_id;
+use utilities::find_workspace_by_num;
 
 /// CLI arguments.
 #[derive(clap::Parser)]
@@ -118,16 +118,9 @@ fn command_print_tree(print_tree_cmd: PrintTreeCmd) -> Result<()> {
     let root_node = command_executor.query_root_node()?;
 
     let node = match print_tree_cmd.workspace_num {
-        Some(workspace_num) => {
-            let workspace = command_executor
-                .query_workspaces()?
-                .into_iter()
-                .find(|workspace| workspace.num == workspace_num)
-                .ok_or_else(|| anyhow!("Cannot find the workspace number '{}'", workspace_num))?;
+        Some(workspace_num) => find_workspace_by_num(&root_node, workspace_num)
+            .ok_or_else(|| anyhow!("Cannot find the workspace number '{}'", workspace_num))?,
 
-            find_node_by_id(workspace.id, &root_node)
-                .context("Cannot find the workspace associated with the id")?
-        }
         None => root_node.node(),
     };
 

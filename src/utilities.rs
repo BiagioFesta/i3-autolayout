@@ -18,6 +18,7 @@
 use crate::command_executor::CommandExecutor;
 use crate::command_executor::I3Node;
 use crate::command_executor::RootNode;
+use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
 use i3_ipc::reply::Floating;
@@ -60,6 +61,7 @@ impl RectRatio {
 }
 
 /// Find a node by id.
+#[allow(unused)]
 pub fn find_node_by_id(node_id: usize, root_node: &RootNode) -> Option<&I3Node> {
     let mut dfs = vec![root_node.node()];
 
@@ -118,6 +120,56 @@ pub fn find_workspace_of_node(node_id: usize, root_node: &RootNode) -> Option<&I
     }
 
     workspace
+}
+
+/// Find all I3 nodes in the tree that are workspaces type.
+pub fn find_workspaces(root_node: &RootNode) -> Vec<&I3Node> {
+    let mut workspaces = vec![];
+    let mut dfs = vec![root_node.node()];
+
+    while let Some(current) = dfs.pop() {
+        if current.node_type == NodeType::Workspace {
+            workspaces.push(current);
+        } else {
+            dfs.extend(current.nodes.as_slice());
+        }
+    }
+
+    workspaces
+}
+
+/// Find the workspace associated with the number in the nodes tree.
+pub fn find_workspace_by_num(root_node: &RootNode, workspace_num: i32) -> Option<&I3Node> {
+    find_workspaces(root_node).into_iter().find(|workspace| {
+        debug_assert_eq!(workspace.node_type, NodeType::Workspace);
+
+        let num = workspace
+            .num
+            .expect("The node is expected to have a number as workspace");
+
+        num == workspace_num
+    })
+}
+
+/// Query and retrieve the currently focused workspace.
+///
+/// It queries via `command_executor` the currently focused workspace number;
+/// afterwards, it performs a research across the give nodes tree for that workspace-node.
+///
+/// *Note*: the `root_node` might be inconsistent (older state-snapshot).
+pub fn query_workspace_focused<'a>(
+    root_node: &'a RootNode,
+    command_executor: &mut CommandExecutor,
+) -> Result<&'a I3Node> {
+    let workspace_num = command_executor
+        .query_workspaces()?
+        .into_iter()
+        .find(|workspace| workspace.focused)
+        .ok_or_else(|| anyhow!("Cannot detect the current focused workspace"))?
+        .num;
+
+    find_workspace_by_num(root_node, workspace_num)
+        .ok_or_else(|| anyhow!("Cannot find the workspace number '{}'", workspace_num))
 }
 
 /// Set the layout for a particular node.

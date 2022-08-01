@@ -17,11 +17,9 @@
 
 use crate::command_executor::CommandExecutor;
 use crate::command_executor::I3Node;
-use crate::command_executor::RootNode;
-use crate::utilities::find_node_by_id;
+use crate::utilities::query_workspace_focused;
 use crate::utilities::set_node_layout;
 use crate::utilities::Layout;
-use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
 use i3_ipc::reply::NodeLayout;
@@ -53,7 +51,7 @@ impl TabMode {
     /// it a tabbed layout.
     pub fn execute(mut self) -> Result<()> {
         let root_node = self.command_executor.query_root_node()?;
-        let workspace = self.get_focus_workspace(&root_node)?;
+        let workspace = query_workspace_focused(&root_node, &mut self.command_executor)?;
 
         self.normalize_workspace(workspace)?;
 
@@ -64,20 +62,6 @@ impl TabMode {
 
         set_node_layout(workspace.id, layout, &mut self.command_executor)
             .context("Cannot layout for focused workspace")
-    }
-
-    /// Return the current focused workspace (as node).
-    fn get_focus_workspace<'a>(&mut self, root_node: &'a RootNode) -> Result<&'a I3Node> {
-        let focused_workspace_id = self
-            .command_executor
-            .query_workspaces()?
-            .into_iter()
-            .find(|workspace| workspace.focused)
-            .ok_or_else(|| anyhow!("Cannot detect the current focused workspace"))?
-            .id;
-
-        find_node_by_id(focused_workspace_id, root_node)
-            .ok_or_else(|| anyhow!("Cannot find focused workspace associated with the id"))
     }
 
     /// Normalize a workspace.
