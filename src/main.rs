@@ -50,7 +50,7 @@ enum Command {
 
     /// Toggle tabmode on the current focused workspace.
     #[clap(name = "tabmode")]
-    TabMode,
+    TabMode(TabModeCmd),
 
     /// Display i3 information.
     #[clap(name = "i3version")]
@@ -59,6 +59,13 @@ enum Command {
     /// Print a snapshot of the current layout as tree.
     #[clap(name = "print-tree")]
     PrintTree(PrintTreeCmd),
+}
+
+/// Information about the tabmode command.
+#[derive(clap::Args)]
+struct TabModeCmd {
+    /// The workspace number to apply tab mode. If not specified the focused workspace will be used.
+    workspace_num: Option<i32>,
 }
 
 /// Information about the print-tree command.
@@ -73,8 +80,13 @@ fn main() -> Result<()> {
 
     match cli_args.command {
         Command::Autolayout => command_autolayout().context("Failure in command 'autolayout'"),
-        Command::TabMode => command_tabmode().context("Failure in command 'tabmode'"),
+
+        Command::TabMode(tabmode_cmd) => {
+            command_tabmode(tabmode_cmd).context("Failure in command 'tabmode'")
+        }
+
         Command::I3Version => command_i3_version().context("Failure in command 'i3version'"),
+
         Command::PrintTree(print_tree_cmd) => {
             command_print_tree(print_tree_cmd).context("Failure in command 'print-tree'")
         }
@@ -91,11 +103,11 @@ fn command_autolayout() -> Result<()> {
 }
 
 /// Execute tabmode.
-fn command_tabmode() -> Result<()> {
+fn command_tabmode(tabmode_cmd: TabModeCmd) -> Result<()> {
     let command_executor = CommandExecutor::new()?;
     let tabmode = TabMode::new(command_executor);
 
-    tabmode.execute()
+    tabmode.execute(tabmode_cmd.workspace_num)
 }
 
 /// Display i3 information.

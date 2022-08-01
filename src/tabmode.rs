@@ -17,9 +17,11 @@
 
 use crate::command_executor::CommandExecutor;
 use crate::command_executor::I3Node;
+use crate::utilities::find_workspace_by_num;
 use crate::utilities::query_workspace_focused;
 use crate::utilities::set_node_layout;
 use crate::utilities::Layout;
+use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
 use i3_ipc::reply::NodeLayout;
@@ -47,11 +49,18 @@ impl TabMode {
 
     /// Execute the action.
     ///
-    /// It normalizes the current active workspace and displays all nodes
-    /// it a tabbed layout.
-    pub fn execute(mut self) -> Result<()> {
+    /// It normalizes a workspace and displays all nodes it a tabbed layout.
+    /// It can be toggled: if the workspace is already in tab-mode it will restore the default layout.
+    ///
+    /// The action will be appliced on a specific workspace number (argument).
+    /// If `workspace_num` is `None` the currently focused workspace will be used.
+    pub fn execute(mut self, workspace_num: Option<i32>) -> Result<()> {
         let root_node = self.command_executor.query_root_node()?;
-        let workspace = query_workspace_focused(&root_node, &mut self.command_executor)?;
+        let workspace = match workspace_num {
+            Some(workspace_num) => find_workspace_by_num(&root_node, workspace_num)
+                .ok_or_else(|| anyhow!("Cannot find the workspace number '{}'", workspace_num))?,
+            None => query_workspace_focused(&root_node, &mut self.command_executor)?,
+        };
 
         self.normalize_workspace(workspace)?;
 
