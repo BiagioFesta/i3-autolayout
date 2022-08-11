@@ -56,6 +56,7 @@ impl TabMode {
     /// If `workspace_num` is `None` the currently focused workspace will be used.
     pub fn execute(mut self, workspace_num: Option<i32>) -> Result<()> {
         let root_node = self.command_executor.query_root_node()?;
+
         let workspace = match workspace_num {
             Some(workspace_num) => find_workspace_by_num(&root_node, workspace_num)
                 .ok_or_else(|| anyhow!("Cannot find the workspace number '{}'", workspace_num))?,
