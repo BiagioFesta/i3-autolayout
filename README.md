@@ -17,6 +17,11 @@ Of course, you can still perform a manual split: indeed, `i3-autolayout` aims to
 
 `i3-autolayout` is written in *Rust* (programming language) for best performances and minimal system resource usage.
 
+## Key Features
+ * Easy to install (see the installation guide).
+ * [`tabmode`](https://github.com/BiagioFesta/i3-autolayout/wiki/Usage#tabmode): real tabbed layout with a single command.
+ * Written in Rust. Minimum resources overhead.
+ * Systemd Unit (if you like it).
 
 ## Install
 
