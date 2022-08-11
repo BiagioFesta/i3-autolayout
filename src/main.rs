@@ -30,6 +30,10 @@ use anyhow::Context;
 use anyhow::Result;
 use clap::Parser;
 use print_tree::print_tree;
+use save_layout::SaveLayout;
+use std::fs::File;
+use std::io::Write;
+use std::path::PathBuf;
 use utilities::find_workspace_by_num;
 
 /// CLI arguments.
@@ -59,6 +63,9 @@ enum Command {
     /// Print a snapshot of the current layout as tree.
     #[clap(name = "print-tree")]
     PrintTree(PrintTreeCmd),
+
+    #[clap(name = "save-layout")]
+    SaveLayout(SaveLayoutCmd),
 }
 
 /// Information about the tabmode command.
@@ -75,6 +82,22 @@ struct PrintTreeCmd {
     workspace_num: Option<i32>,
 }
 
+/// Information about the save-layout command.
+#[derive(clap::Args)]
+struct SaveLayoutCmd {
+    /// The workspace number to save. If not specified the focused workspace will be used.
+    #[clap(short, long)]
+    workspace_num: Option<i32>,
+
+    /// The output filename where to save the layout. If not specified stdout will be used.
+    #[clap(short, long)]
+    output: Option<PathBuf>,
+
+    /// Format the output with JSON.
+    #[clap(short, long, action)]
+    json: bool,
+}
+
 fn main() -> Result<()> {
     let cli_args = CliArgs::parse();
 
@@ -89,6 +112,10 @@ fn main() -> Result<()> {
 
         Command::PrintTree(print_tree_cmd) => {
             command_print_tree(print_tree_cmd).context("Failure in command 'print-tree'")
+        }
+
+        Command::SaveLayout(save_layout_cmd) => {
+            command_save_layout(save_layout_cmd).context("Failure in command 'save-layout'")
         }
     }
 }
@@ -139,9 +166,26 @@ fn command_print_tree(print_tree_cmd: PrintTreeCmd) -> Result<()> {
     print_tree(node)
 }
 
+fn command_save_layout(save_layout_cmd: SaveLayoutCmd) -> Result<()> {
+    let command_executor = CommandExecutor::new()?;
+    let save_layout = SaveLayout::new(command_executor);
+
+    let output: Box<dyn Write> =
+        match save_layout_cmd.output {
+            Some(output_file) => Box::new(File::create(&output_file).with_context(|| {
+                format!("Cannot create layout file '{}'", output_file.display())
+            })?),
+
+            None => Box::new(std::io::stdout()),
+        };
+
+    save_layout.execute(save_layout_cmd.workspace_num, output, save_layout_cmd.json)
+}
+
 mod autolayout;
 mod command_executor;
 mod event_listener;
 mod print_tree;
+mod save_layout;
 mod tabmode;
 mod utilities;

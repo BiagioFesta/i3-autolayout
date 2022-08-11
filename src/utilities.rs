@@ -31,6 +31,15 @@ pub enum Layout {
 
     /// Tabbed layout.
     Tabbed,
+
+    /// Split horizontal layout.
+    SplitH,
+
+    /// Split vertical layout.
+    SplitV,
+
+    /// Stacked layout.
+    Stacked,
 }
 
 /// A split operation request.
@@ -181,6 +190,9 @@ pub fn set_node_layout(
     let layout_cmd = match layout {
         Layout::Default => "layout default",
         Layout::Tabbed => "layout tabbed",
+        Layout::SplitH => "layout splith",
+        Layout::SplitV => "layout splitv",
+        Layout::Stacked => "layout stacked",
     };
 
     command_executor
