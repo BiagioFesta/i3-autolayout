@@ -38,11 +38,13 @@ impl<'a> TreeItem for TreeNode<'a> {
         W: Write,
     {
         write!(f,
-               "[Type: {type:?}; \
+               "[ID: {id}; \
+                Type: {type:?}; \
                 Name: {name:?}; \
                 Layout: {layout:?}; \
                 WinType: {wintype:?}; \
                 NumFloatings: {num_floats}]",
+               id = self.0.id,
                type = self.0.node_type,
                name = self.0.name,
                layout = self.0.layout,
