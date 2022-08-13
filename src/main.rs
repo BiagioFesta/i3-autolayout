@@ -30,8 +30,10 @@ use anyhow::Context;
 use anyhow::Result;
 use clap::Parser;
 use print_tree::print_tree;
+use restore_layout::RestoreLayout;
 use save_layout::SaveLayout;
 use std::fs::File;
+use std::io::Read;
 use std::io::Write;
 use std::path::PathBuf;
 use utilities::find_workspace_by_num;
@@ -66,6 +68,9 @@ enum Command {
 
     #[clap(name = "save-layout")]
     SaveLayout(SaveLayoutCmd),
+
+    #[clap(name = "restore-layout")]
+    RestoreLayout(RestoreLayoutCmd),
 }
 
 /// Information about the tabmode command.
@@ -98,6 +103,18 @@ struct SaveLayoutCmd {
     json: bool,
 }
 
+/// Information about the restore-layout command.
+#[derive(clap::Args)]
+struct RestoreLayoutCmd {
+    /// The input filename where layout has been stored. If not specified stdin will be used.
+    #[clap(short, long)]
+    input: Option<PathBuf>,
+
+    /// Whether the input is JSON format.
+    #[clap(short, long, action)]
+    json: bool,
+}
+
 fn main() -> Result<()> {
     let cli_args = CliArgs::parse();
 
@@ -117,6 +134,9 @@ fn main() -> Result<()> {
         Command::SaveLayout(save_layout_cmd) => {
             command_save_layout(save_layout_cmd).context("Failure in command 'save-layout'")
         }
+
+        Command::RestoreLayout(restore_layout_cmd) => command_restore_layout(restore_layout_cmd)
+            .context("Failure in command 'restore-layout'"),
     }
 }
 
@@ -182,10 +202,27 @@ fn command_save_layout(save_layout_cmd: SaveLayoutCmd) -> Result<()> {
     save_layout.execute(save_layout_cmd.workspace_num, output, save_layout_cmd.json)
 }
 
+fn command_restore_layout(restore_layout_cmd: RestoreLayoutCmd) -> Result<()> {
+    let command_executor = CommandExecutor::new()?;
+    let restore_layout = RestoreLayout::new(command_executor);
+
+    let input: Box<dyn Read> =
+        match restore_layout_cmd.input {
+            Some(input_file) => Box::new(File::open(&input_file).with_context(|| {
+                format!("Cannot read the layout file '{}'", input_file.display())
+            })?),
+
+            None => Box::new(std::io::stdin()),
+        };
+
+    restore_layout.execute(input, restore_layout_cmd.json)
+}
+
 mod autolayout;
 mod command_executor;
 mod event_listener;
 mod print_tree;
+mod restore_layout;
 mod save_layout;
 mod tabmode;
 mod utilities;

@@ -207,7 +207,7 @@ impl TryFrom<I3NodeLayout> for LayoutNode {
             I3NodeLayout::SplitV => Ok(LayoutNode::SplitV),
             I3NodeLayout::Stacked => Ok(LayoutNode::Stacked),
             I3NodeLayout::Tabbed => Ok(LayoutNode::Tabbed),
-            _ => Err(anyhow!("Unexpcted layout to save: '{:?}'", layout)),
+            _ => Err(anyhow!("Unexpected layout to save: '{:?}'", layout)),
         }
     }
 }
