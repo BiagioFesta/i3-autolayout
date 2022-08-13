@@ -45,7 +45,7 @@ pub struct TabMode {
 impl TabMode {
     /// A temporary mark for moving nodes.
     const MARK_ID: &'static str = "__i3-autolayout__tmp_ID";
-    const SAVE_LAYOUT_JSON: bool = true;
+    const SAVE_LAYOUT_JSON: bool = false;
     const SAVE_LAYOUT_RESTORE_SIZE: bool = false;
 
     /// A new tabmode executor.
