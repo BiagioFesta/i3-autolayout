@@ -33,20 +33,27 @@ use std::io::Read;
 
 type NodeId = usize;
 
+/// RestoreLayout executor.
+///
+/// Restore a previosly saved layout for a workspace.
 pub struct RestoreLayout {
     command_executor: CommandExecutor,
 }
 
 impl RestoreLayout {
+    /// Construct the new executor.
     pub fn new(command_executor: CommandExecutor) -> Self {
         Self { command_executor }
     }
 
-    pub fn execute<R>(mut self, reader: R, json_input: bool) -> Result<()>
+    /// It reads the saved workspace from `input`.
+    ///
+    /// Then it tries to restore the layout saved with a best-effort approach.
+    pub fn execute<R>(mut self, input: R, json_input: bool) -> Result<()>
     where
         R: Read,
     {
-        let saved_layout = SavedLayout::deserialize(reader, json_input)?;
+        let saved_layout = SavedLayout::deserialize(input, json_input)?;
 
         let workspace_num = match saved_layout.root().kind() {
             KindNode::Workspace(workspace_num) => Ok(*workspace_num),

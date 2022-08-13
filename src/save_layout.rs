@@ -35,15 +35,28 @@ type NodeId = usize;
 type NodeIndex = usize;
 type WorkspaceNum = i32;
 
+/// SaveLayout executor.
+///
+/// Describe a snapshot of a workspace's layout.
+/// Shortly, it allows saving a layout.
+///
+/// It supports two output format: binary and JSON.
 pub struct SaveLayout {
     command_executor: CommandExecutor,
 }
 
 impl SaveLayout {
+    /// A new SaveLayout executor.
     pub fn new(command_executor: CommandExecutor) -> Self {
         Self { command_executor }
     }
 
+    /// Write the workspace's layout on `output`.
+    ///
+    /// Specify the workspace with `workspace_num`. If `None` the currently focused
+    /// workspace will be saved.
+    ///
+    /// `json_output` for JSON format, otherwise binary format will be used.
     pub fn execute<W>(
         mut self,
         workspace_num: Option<i32>,
@@ -83,6 +96,9 @@ impl SaveLayout {
     }
 }
 
+/// SavedLayout
+///
+/// Representation of a layout of a workspace.
 pub struct SavedLayout {
     nodes: SavedNodes,
     map_id: HashMap<NodeId, NodeIndex>,
@@ -121,6 +137,7 @@ impl SavedLayout {
         Ok(Self { nodes, map_id })
     }
 
+    /// Serialize the layout into `output`.
     pub fn serialize<W>(&self, output: W, json_output: bool) -> Result<()>
     where
         W: Write,
@@ -143,17 +160,18 @@ impl SavedLayout {
         Ok(())
     }
 
-    pub fn deserialize<R>(reader: R, json_input: bool) -> Result<Self>
+    /// Load a layout from `input`.
+    pub fn deserialize<R>(input: R, json_input: bool) -> Result<Self>
     where
         R: Read,
     {
         let nodes = if json_input {
-            let mut deserializer = serde_json::de::Deserializer::from_reader(reader);
+            let mut deserializer = serde_json::de::Deserializer::from_reader(input);
 
             SavedNodes::deserialize(&mut deserializer).context("Cannot JSON deserialize layout")?
         } else {
             let options = Self::bincode_options();
-            let mut deserializer = bincode::de::Deserializer::with_reader(reader, options);
+            let mut deserializer = bincode::de::Deserializer::with_reader(input, options);
 
             SavedNodes::deserialize(&mut deserializer)
                 .context("Cannot binary deserialize layout")?
@@ -162,6 +180,7 @@ impl SavedLayout {
         Self::new(nodes)
     }
 
+    /// Get the first node (this should be the workspace).
     pub fn root(&self) -> &SavedNode {
         self.nodes
             .0
@@ -169,6 +188,7 @@ impl SavedLayout {
             .expect("Expected at least workspace node")
     }
 
+    /// Return the saved node given its id.
     pub fn lookup_by_id(&self, node_id: usize) -> &SavedNode {
         self.map_id
             .get(&node_id)
@@ -186,6 +206,9 @@ impl SavedLayout {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 struct SavedNodes(Vec<SavedNode>);
 
+/// SavedNode
+///
+/// Representation of a node in the saved layout.
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct SavedNode {
     id: NodeId,
@@ -195,23 +218,28 @@ pub struct SavedNode {
 }
 
 impl SavedNode {
+    /// The id of the node.
     pub fn id(&self) -> NodeId {
         self.id
     }
 
+    /// The type of the node.
     pub fn kind(&self) -> &KindNode {
         &self.kind
     }
 
+    /// The layout saved for this node.
     pub fn layout(&self) -> LayoutNode {
         self.layout
     }
 
+    /// Node children.
     pub fn children(&self) -> &[NodeId] {
         self.children.as_slice()
     }
 }
 
+/// Saved layout applied for a saved node.
 #[derive(Clone, Copy, Debug, serde::Deserialize, serde::Serialize)]
 pub enum LayoutNode {
     SplitH,
@@ -234,10 +262,16 @@ impl TryFrom<I3NodeLayout> for LayoutNode {
     }
 }
 
+/// Type of saved node.
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub enum KindNode {
+    /// The saved node is a workspace.
     Workspace(WorkspaceNum),
+
+    /// The node is a normal window (leaf of the tree).
     NormalWindow,
+
+    /// The node is a container (children >= 1; intermediate node in tree).
     Splitter,
 }
 

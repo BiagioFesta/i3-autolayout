@@ -66,9 +66,11 @@ enum Command {
     #[clap(name = "print-tree")]
     PrintTree(PrintTreeCmd),
 
+    /// Save a workspace's layout.
     #[clap(name = "save-layout")]
     SaveLayout(SaveLayoutCmd),
 
+    /// Restore a workspace's layout.
     #[clap(name = "restore-layout")]
     RestoreLayout(RestoreLayoutCmd),
 }
@@ -186,6 +188,7 @@ fn command_print_tree(print_tree_cmd: PrintTreeCmd) -> Result<()> {
     print_tree(node)
 }
 
+/// Save a layout for a workspace.
 fn command_save_layout(save_layout_cmd: SaveLayoutCmd) -> Result<()> {
     let command_executor = CommandExecutor::new()?;
     let save_layout = SaveLayout::new(command_executor);
@@ -202,6 +205,7 @@ fn command_save_layout(save_layout_cmd: SaveLayoutCmd) -> Result<()> {
     save_layout.execute(save_layout_cmd.workspace_num, output, save_layout_cmd.json)
 }
 
+/// Restore a previously saved layout on a workspace.
 fn command_restore_layout(restore_layout_cmd: RestoreLayoutCmd) -> Result<()> {
     let command_executor = CommandExecutor::new()?;
     let restore_layout = RestoreLayout::new(command_executor);
