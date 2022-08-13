@@ -22,6 +22,7 @@ use crate::save_layout::SavedLayout;
 use crate::utilities::find_node_by_id;
 use crate::utilities::find_node_parent;
 use crate::utilities::find_workspace_by_num;
+use crate::utilities::query_workspace_is_focused;
 use crate::utilities::set_node_layout;
 use crate::utilities::set_node_split;
 use crate::utilities::Layout;
@@ -109,6 +110,8 @@ impl RestoreLayout {
         const MARK_ID: &str = "MARK_TMP_RESTORE";
 
         let root_node = self.command_executor.query_root_node()?;
+        let change_focus = query_workspace_is_focused(workspace_num, &mut self.command_executor)
+            .context("Cannot check whether workspace is focused")?;
 
         if find_node_by_id(node_id, &root_node).is_some() {
             self.command_executor
@@ -116,8 +119,14 @@ impl RestoreLayout {
 
             let workspace = find_workspace_by_num(&root_node, workspace_num)
                 .expect("Expected WS to exist after move on it");
+
             self.command_executor
                 .run_on_node_id(workspace.id, format!("mark {}", MARK_ID))?;
+
+            if change_focus {
+                self.command_executor
+                    .run_on_node_id(workspace.id, "focus")?;
+            }
 
             let _ = self
                 .command_executor

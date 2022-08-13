@@ -181,6 +181,19 @@ pub fn query_workspace_focused<'a>(
         .ok_or_else(|| anyhow!("Cannot find the workspace number '{}'", workspace_num))
 }
 
+/// Query workspaces and check if a given workspace is currently focused.
+pub fn query_workspace_is_focused(
+    workspace_num: i32,
+    command_executor: &mut CommandExecutor,
+) -> Result<bool> {
+    Ok(command_executor
+        .query_workspaces()?
+        .into_iter()
+        .find(|workspace| workspace.focused)
+        .map(|workspace| workspace.num == workspace_num)
+        .unwrap_or_default())
+}
+
 /// Set the layout for a particular node.
 pub fn set_node_layout(
     node_id: usize,
