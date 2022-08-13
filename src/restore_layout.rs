@@ -27,9 +27,11 @@ use crate::utilities::set_node_split;
 use crate::utilities::Layout;
 use crate::utilities::Split;
 use anyhow::anyhow;
+use anyhow::Context;
 use anyhow::Result;
 use std::collections::HashMap;
 use std::io::Read;
+use std::time::Duration;
 
 type NodeId = usize;
 
@@ -41,6 +43,9 @@ pub struct RestoreLayout {
 }
 
 impl RestoreLayout {
+    const SLEEPTIME_BEFORE_RESIZE: Duration = Duration::from_millis(100);
+    const SLEEPTIME_INTRA_RESIZE: Duration = Duration::from_micros(50);
+
     /// Construct the new executor.
     pub fn new(command_executor: CommandExecutor) -> Self {
         Self { command_executor }
@@ -65,21 +70,35 @@ impl RestoreLayout {
 
         while let Some((saved_node, mut path)) = dfs.pop() {
             if saved_node.children().is_empty() {
-                let node_exists = self.move_node_on_ws_if_exists(saved_node.id(), workspace_num)?;
+                let node_exists = self
+                    .move_node_on_ws_if_exists(saved_node.id(), workspace_num)
+                    .with_context(|| format!("Cannot move node '{}'", saved_node.id()))?;
 
                 if node_exists {
                     self.create_path_tree_for_node(saved_node.id(), &path, &mut created_paths)?;
+                } else {
+                    println!(
+                        "[WARN]: Cannot restore node '{}' (not found)",
+                        saved_node.id()
+                    );
                 }
             } else {
                 path.push((saved_node.id(), saved_node.layout()));
 
-                for &child_id in saved_node.children().iter().rev() {
-                    let child = saved_layout.lookup_by_id(child_id);
-
-                    dfs.push((child, path.clone()));
-                }
+                dfs.extend(
+                    saved_node
+                        .children()
+                        .iter()
+                        .rev()
+                        .map(|&child_id| (saved_layout.lookup_by_id(child_id), path.clone())),
+                )
             }
         }
+
+        std::thread::sleep(Self::SLEEPTIME_BEFORE_RESIZE);
+
+        self.restore_sizes(&saved_layout)
+            .context("Cannot restore sizes of layout")?;
 
         Ok(())
     }
@@ -147,6 +166,46 @@ impl RestoreLayout {
 
                     created_paths.insert(*split_id, last_id);
                 }
+            }
+        }
+
+        Ok(())
+    }
+
+    fn restore_sizes(&mut self, saved_layout: &SavedLayout) -> Result<()> {
+        let mut dfs = vec![saved_layout.root()];
+
+        while let Some(saved_node) = dfs.pop() {
+            if let KindNode::NormalWindow(saved_window) = saved_node.kind() {
+                let root_node = self.command_executor.query_root_node()?;
+
+                let saved_width = saved_window.width();
+                let saved_height = saved_window.height();
+
+                if let Some(node) = find_node_by_id(saved_node.id(), &root_node) {
+                    if node.window_rect.width != saved_width {
+                        let _ = self.command_executor.run_on_node_id(
+                            node.id,
+                            format!("resize set width {} px", saved_width),
+                        );
+                    }
+
+                    if node.window_rect.height != saved_height {
+                        let _ = self.command_executor.run_on_node_id(
+                            node.id,
+                            format!("resize set height {} px", saved_height),
+                        );
+                    }
+                }
+
+                std::thread::sleep(Self::SLEEPTIME_INTRA_RESIZE);
+            } else {
+                dfs.extend(
+                    saved_node
+                        .children()
+                        .iter()
+                        .map(|&child_id| saved_layout.lookup_by_id(child_id)),
+                )
             }
         }
 

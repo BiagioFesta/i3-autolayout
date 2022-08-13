@@ -269,7 +269,7 @@ pub enum KindNode {
     Workspace(WorkspaceNum),
 
     /// The node is a normal window (leaf of the tree).
-    NormalWindow,
+    NormalWindow(SavedWindow),
 
     /// The node is a container (children >= 1; intermediate node in tree).
     Splitter,
@@ -285,7 +285,10 @@ impl KindNode {
 
             I3NodeType::Con => {
                 if node.nodes.is_empty() {
-                    Ok(Self::NormalWindow)
+                    Ok(Self::NormalWindow(SavedWindow {
+                        width: node.window_rect.width,
+                        height: node.window_rect.height,
+                    }))
                 } else {
                     Ok(Self::Splitter)
                 }
@@ -293,5 +296,22 @@ impl KindNode {
 
             _ => Err(anyhow!("Unexpected node type: '{:?}'", node.node_type)),
         }
+    }
+}
+
+/// Information about the saved window.
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct SavedWindow {
+    width: isize,
+    height: isize,
+}
+
+impl SavedWindow {
+    pub fn width(&self) -> isize {
+        self.width
+    }
+
+    pub fn height(&self) -> isize {
+        self.height
     }
 }
