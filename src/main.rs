@@ -79,7 +79,12 @@ enum Command {
 #[derive(clap::Args)]
 struct TabModeCmd {
     /// The workspace number to apply tab mode. If not specified the focused workspace will be used.
+    #[clap(short, long)]
     workspace_num: Option<i32>,
+
+    /// The file where to save/load the layout.
+    #[clap(short, long)]
+    file_layout: Option<PathBuf>,
 }
 
 /// Information about the print-tree command.
@@ -160,7 +165,10 @@ fn command_tabmode(tabmode_cmd: TabModeCmd) -> Result<()> {
     let command_executor = CommandExecutor::new()?;
     let tabmode = TabMode::new(command_executor);
 
-    tabmode.execute(tabmode_cmd.workspace_num)
+    tabmode.execute(
+        tabmode_cmd.workspace_num,
+        tabmode_cmd.file_layout.as_deref(),
+    )
 }
 
 /// Display i3 information.
