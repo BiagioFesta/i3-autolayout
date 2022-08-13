@@ -45,6 +45,8 @@ pub struct TabMode {
 impl TabMode {
     /// A temporary mark for moving nodes.
     const MARK_ID: &'static str = "__i3-autolayout__tmp_ID";
+    const SAVE_LAYOUT_JSON: bool = true;
+    const SAVE_LAYOUT_RESTORE_SIZE: bool = false;
 
     /// A new tabmode executor.
     pub fn new(command_executor: CommandExecutor) -> Self {
@@ -77,7 +79,7 @@ impl TabMode {
                 let restore_layout = RestoreLayout::new(self.command_executor);
 
                 restore_layout
-                    .execute(file, false, true)
+                    .execute(file, Self::SAVE_LAYOUT_JSON, Self::SAVE_LAYOUT_RESTORE_SIZE)
                     .context("Cannot restore layout")
             } else {
                 self.normalize_workspace(workspace)
@@ -98,7 +100,7 @@ impl TabMode {
                 );
 
                 save_layout
-                    .execute(Some(workspace_num), file, false)
+                    .execute(Some(workspace_num), file, Self::SAVE_LAYOUT_JSON)
                     .context("Cannot save the layout")?;
             }
 
