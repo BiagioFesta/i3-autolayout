@@ -43,8 +43,8 @@ pub struct RestoreLayout {
 }
 
 impl RestoreLayout {
-    const SLEEPTIME_BEFORE_RESIZE: Duration = Duration::from_millis(100);
-    const SLEEPTIME_INTRA_RESIZE: Duration = Duration::from_micros(50);
+    const SLEEPTIME_BEFORE_RESIZE: Duration = Duration::from_millis(200);
+    const SLEEPTIME_INTRA_RESIZE: Duration = Duration::from_micros(200);
 
     /// Construct the new executor.
     pub fn new(command_executor: CommandExecutor) -> Self {
@@ -54,7 +54,7 @@ impl RestoreLayout {
     /// It reads the saved workspace from `input`.
     ///
     /// Then it tries to restore the layout saved with a best-effort approach.
-    pub fn execute<R>(mut self, input: R, json_input: bool) -> Result<()>
+    pub fn execute<R>(mut self, input: R, json_input: bool, restore_sizes: bool) -> Result<()>
     where
         R: Read,
     {
@@ -95,10 +95,12 @@ impl RestoreLayout {
             }
         }
 
-        std::thread::sleep(Self::SLEEPTIME_BEFORE_RESIZE);
+        if restore_sizes {
+            std::thread::sleep(Self::SLEEPTIME_BEFORE_RESIZE);
 
-        self.restore_sizes(&saved_layout)
-            .context("Cannot restore sizes of layout")?;
+            self.restore_sizes(&saved_layout)
+                .context("Cannot restore sizes of layout")?;
+        }
 
         Ok(())
     }

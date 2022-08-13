@@ -115,6 +115,10 @@ struct RestoreLayoutCmd {
     /// Whether the input is JSON format.
     #[clap(short, long, action)]
     json: bool,
+
+    /// Whether to attempt to restore sizes of windows.
+    #[clap(short, long, action)]
+    restore_sizes: bool,
 }
 
 fn main() -> Result<()> {
@@ -219,7 +223,11 @@ fn command_restore_layout(restore_layout_cmd: RestoreLayoutCmd) -> Result<()> {
             None => Box::new(std::io::stdin()),
         };
 
-    restore_layout.execute(input, restore_layout_cmd.json)
+    restore_layout.execute(
+        input,
+        restore_layout_cmd.json,
+        restore_layout_cmd.restore_sizes,
+    )
 }
 
 mod autolayout;
