@@ -67,9 +67,7 @@ impl RestoreLayout {
                 path.push((saved_node.id(), saved_node.layout()));
 
                 for &child_id in saved_node.children().iter().rev() {
-                    let child = saved_layout.lookup_by_id(child_id).ok_or_else(|| {
-                        anyhow!("Invalid layout. Index is missing for node '{}'", child_id)
-                    })?;
+                    let child = saved_layout.lookup_by_id(child_id);
 
                     dfs.push((child, path.clone()));
                 }

@@ -79,7 +79,7 @@ impl SaveLayout {
             dfs.extend(current.nodes.as_slice());
         }
 
-        Ok(SavedLayout::new(SavedNodes(nodes)))
+        SavedLayout::new(SavedNodes(nodes))
     }
 }
 
@@ -89,15 +89,36 @@ pub struct SavedLayout {
 }
 
 impl SavedLayout {
-    fn new(nodes: SavedNodes) -> Self {
-        let map_id = nodes
+    fn new(nodes: SavedNodes) -> Result<Self> {
+        if nodes.0.is_empty() {
+            return Err(anyhow!("Empty layout"));
+        }
+
+        let map_id: HashMap<NodeId, NodeIndex> = nodes
             .0
             .iter()
             .enumerate()
             .map(|(index, node)| (node.id, index))
             .collect();
 
-        Self { nodes, map_id }
+        let missing_node = nodes.0.iter().find_map(|node| {
+            let missing_child_id = node
+                .children
+                .iter()
+                .find(|child_id| !map_id.contains_key(child_id));
+
+            missing_child_id.map(|missing_child_id| (node.id(), missing_child_id))
+        });
+
+        if let Some(missing_node) = missing_node {
+            return Err(anyhow!(
+                "The node '{}' has a missing child ('{}')",
+                missing_node.0,
+                missing_node.1
+            ));
+        }
+
+        Ok(Self { nodes, map_id })
     }
 
     pub fn serialize<W>(&self, output: W, json_output: bool) -> Result<()>
@@ -138,7 +159,7 @@ impl SavedLayout {
                 .context("Cannot binary deserialize layout")?
         };
 
-        Ok(Self::new(nodes))
+        Self::new(nodes)
     }
 
     pub fn root(&self) -> &SavedNode {
@@ -148,10 +169,11 @@ impl SavedLayout {
             .expect("Expected at least workspace node")
     }
 
-    pub fn lookup_by_id(&self, node_id: usize) -> Option<&SavedNode> {
+    pub fn lookup_by_id(&self, node_id: usize) -> &SavedNode {
         self.map_id
             .get(&node_id)
             .map(|node_index| &self.nodes.0[*node_index])
+            .expect("Expected saved layout to be validated during construction")
     }
 
     fn bincode_options() -> impl BinCodeOptions {
