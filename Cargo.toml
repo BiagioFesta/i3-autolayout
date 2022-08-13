@@ -1,6 +1,6 @@
 [package]
 name = "i3-autolayout"
-version = "0.2.2"
+version = "0.2.3-beta"
 license = "GPL-3.0-or-later"
 authors = ["Biagio Festa"]
 edition = "2021"
