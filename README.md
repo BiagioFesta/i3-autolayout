@@ -19,7 +19,8 @@ Of course, you can still perform a manual split: indeed, `i3-autolayout` aims to
 
 ## Key Features
  * Easy to install (see the installation guide).
- * [`tabmode`](https://github.com/BiagioFesta/i3-autolayout/wiki/Usage#tabmode): real tabbed layout with a single command.
+ * [`tabmode`](https://github.com/BiagioFesta/i3-autolayout/wiki/TabMode): real tabbed layout with a single command.
+   * This command is integrated with *save/restore* layout. So it is possible to toggle tabmode saving the previous layout.
  * Written in Rust. Minimum resources overhead.
  * Systemd Unit (if you like it).
 
