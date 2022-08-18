@@ -113,22 +113,20 @@ pub fn find_node_parent(node_id: usize, root_node: &RootNode) -> Option<&I3Node>
 /// Note: a window might not be always associated with a workspace.
 /// For instance, floating windows or windows on scratchpad.
 pub fn find_workspace_of_node(node_id: usize, root_node: &RootNode) -> Option<&I3Node> {
-    let mut workspace = None;
-    let mut dfs = vec![root_node.node()];
+    let mut dfs = find_workspaces(root_node)
+        .into_iter()
+        .map(|workspace| (workspace, workspace))
+        .collect::<Vec<_>>();
 
-    while let Some(current) = dfs.pop() {
-        if current.node_type == NodeType::Workspace {
-            workspace = Some(current);
-        }
-
+    while let Some((current, workspace)) = dfs.pop() {
         if current.id == node_id {
-            break;
+            return Some(workspace);
         }
 
-        dfs.extend(current.nodes.as_slice());
+        dfs.extend(current.nodes.iter().map(|node| (node, workspace)));
     }
 
-    workspace
+    None
 }
 
 /// Find all I3 nodes in the tree that are workspaces type.
